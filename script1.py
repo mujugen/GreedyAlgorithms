@@ -1,6 +1,8 @@
 import sys
 import matplotlib.pyplot as plt
 import networkx as nx
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 class Graph:
@@ -40,18 +42,27 @@ class Graph:
             u = self.minKey(key, mstSet)
             mstSet[u] = True
 
+            plot_message = ""
             for v in range(self.V):
                 if 0 < self.graph[u][v] < key[v] and not mstSet[v]:
+                    if key[v] == sys.maxsize:
+                        plot_message = f"Edge {u}-{v} has no prior comparison. Connecting node {u} to node {v}."
+                    else:
+                        plot_message = f"Comparing edge {u}-{v} from edge {parent[v]}-{v}, edge {u}-{v} has a lower weight. Connecting node {u} to node {v}."
+
+                    print(plot_message)
                     key[v] = self.graph[u][v]
                     parent[v] = u
 
-            self.plot_graph(parent, mstSet, pos)  # Pass the layout here
+            # Pass the layout and message here
+            self.plot_graph(parent, mstSet, pos, plot_message)
 
         self.printMST(parent)
         plt.pause(5)
 
-    def plot_graph(self, parent, mstSet, pos):
+    def plot_graph(self, parent, mstSet, pos, message):
         plt.clf()
+        plt.title(message)  # Set the message as the plot title
         nx.draw(self.G, pos, with_labels=True,
                 font_weight='bold', node_color='lightblue')
 
@@ -93,12 +104,16 @@ class Graph:
                     self.G.add_edge(i, j, weight=self.graph[i][j])
 
 
-# Sample Scenario
-g = Graph(5)
-g.graph = [[0, 2, 0, 6, 0],
-           [2, 0, 3, 8, 5],
-           [0, 3, 0, 0, 7],
-           [6, 8, 0, 0, 9],
-           [0, 5, 7, 9, 0]]
+g = Graph(8)
+g.graph = [
+    [0, 2, 0, 6, 0, 0, 0, 0],
+    [2, 0, 3, 8, 5, 0, 0, 0],
+    [0, 3, 0, 0, 7, 4, 0, 0],
+    [6, 8, 0, 0, 9, 0, 3, 0],
+    [0, 5, 7, 9, 0, 0, 0, 1],
+    [0, 0, 4, 0, 0, 0, 2, 0],
+    [0, 0, 0, 3, 0, 2, 0, 5],
+    [0, 0, 0, 0, 1, 0, 5, 0]
+]
 g.update_graph()
 g.primMST()
